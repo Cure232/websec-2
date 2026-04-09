@@ -1,0 +1,16 @@
+table {
+  margin-top: 20px;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+td, th {
+  border: 1px solid #ccc;
+  padding: 6px;
+}
+
+@media (max-width: 600px) {
+  table {
+    font-size: 12px;
+  }
+}

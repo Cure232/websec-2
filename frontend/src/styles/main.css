@@ -1,0 +1,284 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f4f6f8;
+}
+
+.header {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+  color: #f8fafc;
+  padding: 16px 20px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18);
+}
+
+.header-brand {
+  display: grid;
+  gap: 4px;
+}
+
+.header-title {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.header-subtitle {
+  font-size: 14px;
+  color: rgba(248, 250, 252, 0.85);
+}
+
+.nav {
+  margin-top: 14px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.header .nav .nav-link {
+  color: #e2e8f0;
+  background: rgba(148, 163, 184, 0.16);
+  border: 1px solid rgba(226, 232, 240, 0.18);
+  border-radius: 999px;
+  padding: 8px 14px;
+  text-decoration: none;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.header .nav .nav-link:hover {
+  color: #ffffff;
+  background: rgba(59, 130, 246, 0.25);
+  border-color: rgba(96, 165, 250, 0.5);
+}
+
+.header .nav .nav-link.active {
+  color: #0f172a;
+  background: #e2e8f0;
+  border-color: #e2e8f0;
+}
+
+.container {
+  max-width: 900px;
+  margin: auto;
+  padding: 20px;
+}
+
+select,
+input {
+  padding: 8px;
+  margin-right: 10px;
+}
+
+.controls-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 10px 0;
+}
+
+.autocomplete {
+  position: relative;
+  min-width: 280px;
+  flex: 1;
+  z-index: 20;
+}
+
+.autocomplete input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.autocomplete-dropdown {
+  background: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  max-height: 240px;
+  overflow-y: auto;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-size: inherit;
+  font-family: inherit;
+}
+
+.autocomplete-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  color: #111827;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.autocomplete-item:hover {
+  background: #f3f4f6;
+}
+
+.map-wrapper {
+  margin-top: 14px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  position: relative;
+  z-index: 1;
+}
+
+select,
+input {
+  min-width: 220px;
+}
+
+button {
+  padding: 8px 12px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.map-target-row {
+  align-items: center;
+}
+
+.target-switch {
+  display: inline-flex;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.target-option {
+  border-radius: 0;
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+.target-option.active {
+  background: #2563eb;
+  color: #fff;
+}
+
+button:hover {
+  background: #1d4ed8;
+}
+
+button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.favorites-panel {
+  margin-top: 20px;
+  padding: 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.favorites-panel h3 {
+  margin: 0 0 12px;
+}
+
+.favorites-empty {
+  margin: 0;
+  color: #64748b;
+}
+
+.favorites-list {
+  display: grid;
+  gap: 10px;
+}
+
+.favorite-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px;
+  background: #f8fafc;
+}
+
+.favorite-meta {
+  display: grid;
+  gap: 3px;
+}
+
+.favorite-meta span {
+  color: #475569;
+  font-size: 14px;
+}
+
+.favorite-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.danger-button {
+  background: #dc2626;
+}
+
+.danger-button:hover {
+  background: #b91c1c;
+}
+
+.autocomplete-loading-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  color: #6b7280;
+  font-style: italic;
+  padding: 10px 12px;
+  cursor: default;
+}
+
+.autocomplete-empty-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  color: #6b7280;
+  padding: 10px 12px;
+  cursor: default;
+}
+
+.about-page {
+  display: grid;
+  gap: 14px;
+}
+
+.about-page h2 {
+  margin: 0;
+}
+
+.about-page p {
+  margin: 0;
+  line-height: 1.55;
+}
+
+.about-section {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.about-section h3 {
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+
+.about-section ul,
+.about-section ol {
+  margin: 0;
+  padding-left: 22px;
+  line-height: 1.5;
+}
+
