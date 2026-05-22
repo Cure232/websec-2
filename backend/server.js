@@ -20,7 +20,7 @@ app.get('/', (req, res) => {
   res.send('API Прибывалка.Электрички работает');
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = Number(process.env.PORT);
 
 app.listen(PORT, () => {
   console.log(`Server started on port ${PORT}`);

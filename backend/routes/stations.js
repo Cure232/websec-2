@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { searchStations, getStationsInBounds } = require('../services/yandexApi');
+const MAP_MIN_ZOOM = Number(process.env.MAP_MIN_ZOOM);
 
 router.get('/', async (req, res) => {
   try {
@@ -18,7 +19,7 @@ router.get('/', async (req, res) => {
       Number.isFinite(maxLng);
 
     if (hasBounds) {
-      if (!Number.isFinite(zoom) || zoom < 9) {
+      if (!Number.isFinite(zoom) || zoom < MAP_MIN_ZOOM) {
         return res.json([]);
       }
       const stations = await getStationsInBounds({ minLat, minLng, maxLat, maxLng });

@@ -1,55 +1,19 @@
 import { useState, useContext, useEffect, useRef } from 'react';
 import { AppContext } from '../context/AppContextInstance';
-import { searchStation, getSchedule, getStationsInBounds } from '../api/api';
+import { searchStation, getSchedule } from '../api/api';
 import ScheduleCard from '../components/ScheduleCard';
 import StationAutocomplete from '../components/StationAutocomplete';
 import StationMap from '../components/StationMap';
 import Container from '../layout/Container';
+import { loadFavoritesFromStorage, saveFavoritesToStorage } from '../storage/favoritesStorage';
+import { runDebouncedLatest } from '../utils/debouncedRequest';
+import {
+  requestStationsInBoundsDebounced,
+  cancelStationsInBoundsRequest
+} from '../utils/stationMapRequests';
 
-const FAVORITES_STORAGE_KEY = 'favoriteStationSchedules';
-
-function loadFavoritesFromStorage() {
-  if (typeof window === 'undefined') {
-    return [];
-  }
-
-  try {
-    const raw = window.localStorage.getItem(FAVORITES_STORAGE_KEY);
-    if (!raw) {
-      return [];
-    }
-
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) {
-      return [];
-    }
-
-    return parsed
-      .filter(
-        item =>
-          item &&
-          typeof item === 'object' &&
-          item.station &&
-          typeof item.station === 'object' &&
-          typeof item.station.code === 'string'
-      )
-      .map(item => ({ station: item.station }));
-  } catch {
-    return [];
-  }
-}
-
-function saveFavoritesToStorage(favorites) {
-  if (typeof window === 'undefined') {
-    return;
-  }
-
-  try {
-    window.localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(favorites));
-  } catch {
-    // Ignore storage errors (private mode, quota, etc.) so schedule page stays usable.
-  }
-}
+const STATION_SEARCH_DEBOUNCE_MS = Number(import.meta.env.VITE_STATION_SEARCH_DEBOUNCE_MS);
+const MAP_VIEWPORT_DEBOUNCE_MS = Number(import.meta.env.VITE_MAP_VIEWPORT_DEBOUNCE_MS);
 
 export default function StationPage() {
   const [query, setQuery] = useState('');
@@ -63,6 +27,7 @@ export default function StationPage() {
   const { schedule, setSchedule } = useContext(AppContext);
   const searchRequestId = useRef(0);
   const viewportRequestId = useRef(0);
+  const viewportTimerId = useRef(null);
 
   useEffect(() => {
     saveFavoritesToStorage(favorites);
@@ -84,46 +49,50 @@ export default function StationPage() {
       return undefined;
     }
 
-    const requestId = ++searchRequestId.current;
     setSearchLoading(true);
     setMessage('');
 
-    const timerId = setTimeout(async () => {
+    return runDebouncedLatest({
+      requestRef: searchRequestId,
+      delayMs: STATION_SEARCH_DEBOUNCE_MS,
+      onRun: async ({ isLatest }) => {
       try {
         const foundStations = await searchStation(value);
-        if (requestId !== searchRequestId.current) return;
+        if (!isLatest()) return;
         setSuggestions(foundStations);
         if (foundStations.length === 0) {
           setMessage('Станции не найдены.');
         }
       } catch {
-        if (requestId !== searchRequestId.current) return;
+        if (!isLatest()) return;
         setSuggestions([]);
         setMessage('Не удалось выполнить поиск станции.');
       } finally {
-        if (requestId === searchRequestId.current) {
+        if (isLatest()) {
           setSearchLoading(false);
         }
       }
-    }, 350);
-
-    return () => clearTimeout(timerId);
+      }
+    });
   }, [query]);
 
   const handleViewportChange = viewport => {
-    const requestId = ++viewportRequestId.current;
-    setTimeout(async () => {
-      if (requestId !== viewportRequestId.current) return;
-      try {
-        const stations = await getStationsInBounds(viewport);
-        if (requestId !== viewportRequestId.current) return;
-        setMapStations(stations);
-      } catch {
-        if (requestId !== viewportRequestId.current) return;
-        setMapStations([]);
-      }
-    }, 220);
+    requestStationsInBoundsDebounced({
+      viewport,
+      requestRef: viewportRequestId,
+      timerRef: viewportTimerId,
+      delayMs: MAP_VIEWPORT_DEBOUNCE_MS,
+      setStations: setMapStations
+    });
   };
+
+  useEffect(
+    () => () => cancelStationsInBoundsRequest({
+      requestRef: viewportRequestId,
+      timerRef: viewportTimerId
+    }),
+    []
+  );
 
   const handlePickStation = station => {
     setSelectedStation(station);

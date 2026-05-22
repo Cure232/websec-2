@@ -1,8 +1,12 @@
 const axios = require('axios');
 
 const API_KEY = process.env.YANDEX_RASP_API_KEY;
-const BASE_URL = 'https://api.rasp.yandex.net/v3.0/';
-const STATIONS_CACHE_TTL_MS = 10 * 60 * 1000;
+const BASE_URL = process.env.YANDEX_RASP_BASE_URL;
+const STATIONS_CACHE_TTL_MS = Number(process.env.STATIONS_CACHE_TTL_MS);
+const YANDEX_RASP_LANG = process.env.YANDEX_RASP_LANG;
+const YANDEX_RASP_TRANSPORT_TYPES = process.env.YANDEX_RASP_TRANSPORT_TYPES;
+const STATION_SEARCH_LIMIT = Number(process.env.STATION_SEARCH_LIMIT);
+const STATION_BOUNDS_LIMIT = Number(process.env.STATION_BOUNDS_LIMIT);
 let stationsCache = {
   ts: 0,
   data: []
@@ -47,7 +51,7 @@ async function getFlatStations() {
     return stationsCache.data;
   }
 
-  const url = `${BASE_URL}stations_list/?apikey=${API_KEY}&format=json&lang=ru_RU&transport_types=train`;
+  const url = `${BASE_URL}stations_list/?apikey=${API_KEY}&format=json&lang=${YANDEX_RASP_LANG}&transport_types=${YANDEX_RASP_TRANSPORT_TYPES}`;
   const response = await axios.get(url);
   const uniqueStations = new Map();
 
@@ -114,11 +118,11 @@ async function searchStations(query) {
     }))
     .filter(station => station.score > 0)
     .sort((a, b) => b.score - a.score || a.displayTitle.localeCompare(b.displayTitle, 'ru'))
-    .slice(0, 40)
+    .slice(0, STATION_SEARCH_LIMIT)
     .map(({ score, ...station }) => station);
 }
 
-async function getStationsInBounds({ minLat, minLng, maxLat, maxLng, limit = 600 }) {
+async function getStationsInBounds({ minLat, minLng, maxLat, maxLng, limit = STATION_BOUNDS_LIMIT }) {
   const stations = await getFlatStations();
 
   return stations
@@ -133,13 +137,13 @@ async function getStationsInBounds({ minLat, minLng, maxLat, maxLng, limit = 600
 }
 
 async function getSchedule(stationCode) {
-  const url = `${BASE_URL}schedule/?apikey=${API_KEY}&station=${stationCode}&lang=ru_RU&transport_types=train`;
+  const url = `${BASE_URL}schedule/?apikey=${API_KEY}&station=${stationCode}&lang=${YANDEX_RASP_LANG}&transport_types=${YANDEX_RASP_TRANSPORT_TYPES}`;
   const response = await axios.get(url);
   return response.data.schedule;
 }
 
 async function getRoutes(from, to) {
-  const url = `${BASE_URL}search/?apikey=${API_KEY}&from=${from}&to=${to}&lang=ru_RU&transport_types=train`;
+  const url = `${BASE_URL}search/?apikey=${API_KEY}&from=${from}&to=${to}&lang=${YANDEX_RASP_LANG}&transport_types=${YANDEX_RASP_TRANSPORT_TYPES}`;
   const response = await axios.get(url);
   return response.data.segments;
 }

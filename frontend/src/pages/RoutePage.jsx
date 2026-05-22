@@ -1,9 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
-import { getRoutes, searchStation, getStationsInBounds } from '../api/api';
+import { getRoutes, searchStation } from '../api/api';
 import Container from '../layout/Container';
 import ScheduleCard from '../components/ScheduleCard';
 import StationAutocomplete from '../components/StationAutocomplete';
 import StationMap from '../components/StationMap';
+import { runDebouncedLatest } from '../utils/debouncedRequest';
+import {
+  requestStationsInBoundsDebounced,
+  cancelStationsInBoundsRequest
+} from '../utils/stationMapRequests';
+
+const STATION_SEARCH_DEBOUNCE_MS = Number(import.meta.env.VITE_STATION_SEARCH_DEBOUNCE_MS);
+const MAP_VIEWPORT_DEBOUNCE_MS = Number(import.meta.env.VITE_MAP_VIEWPORT_DEBOUNCE_MS);
 
 export default function RoutePage() {
   const [fromQuery, setFromQuery] = useState('');
@@ -22,6 +30,7 @@ export default function RoutePage() {
   const fromRequestId = useRef(0);
   const toRequestId = useRef(0);
   const viewportRequestId = useRef(0);
+  const viewportTimerId = useRef(null);
 
   const searchFromStations = value => {
     setFromQuery(value);
@@ -43,26 +52,27 @@ export default function RoutePage() {
       return undefined;
     }
 
-    const requestId = ++fromRequestId.current;
     setFromLoading(true);
     setMessage('');
 
-    const timerId = setTimeout(async () => {
+    return runDebouncedLatest({
+      requestRef: fromRequestId,
+      delayMs: STATION_SEARCH_DEBOUNCE_MS,
+      onRun: async ({ isLatest }) => {
       try {
         const stations = await searchStation(value);
-        if (requestId !== fromRequestId.current) return;
+        if (!isLatest()) return;
         setFromStations(stations);
         if (stations.length === 0) setMessage('Станция отправления не найдена.');
       } catch {
-        if (requestId !== fromRequestId.current) return;
+        if (!isLatest()) return;
         setFromStations([]);
         setMessage('Ошибка поиска станции отправления.');
       } finally {
-        if (requestId === fromRequestId.current) setFromLoading(false);
+        if (isLatest()) setFromLoading(false);
       }
-    }, 350);
-
-    return () => clearTimeout(timerId);
+      }
+    });
   }, [fromQuery]);
 
   useEffect(() => {
@@ -73,26 +83,27 @@ export default function RoutePage() {
       return undefined;
     }
 
-    const requestId = ++toRequestId.current;
     setToLoading(true);
     setMessage('');
 
-    const timerId = setTimeout(async () => {
+    return runDebouncedLatest({
+      requestRef: toRequestId,
+      delayMs: STATION_SEARCH_DEBOUNCE_MS,
+      onRun: async ({ isLatest }) => {
       try {
         const stations = await searchStation(value);
-        if (requestId !== toRequestId.current) return;
+        if (!isLatest()) return;
         setToStations(stations);
         if (stations.length === 0) setMessage('Станция прибытия не найдена.');
       } catch {
-        if (requestId !== toRequestId.current) return;
+        if (!isLatest()) return;
         setToStations([]);
         setMessage('Ошибка поиска станции прибытия.');
       } finally {
-        if (requestId === toRequestId.current) setToLoading(false);
+        if (isLatest()) setToLoading(false);
       }
-    }, 350);
-
-    return () => clearTimeout(timerId);
+      }
+    });
   }, [toQuery]);
 
   const search = async () => {
@@ -127,19 +138,22 @@ export default function RoutePage() {
   };
 
   const handleViewportChange = viewport => {
-    const requestId = ++viewportRequestId.current;
-    setTimeout(async () => {
-      if (requestId !== viewportRequestId.current) return;
-      try {
-        const stations = await getStationsInBounds(viewport);
-        if (requestId !== viewportRequestId.current) return;
-        setMapStations(stations);
-      } catch {
-        if (requestId !== viewportRequestId.current) return;
-        setMapStations([]);
-      }
-    }, 220);
+    requestStationsInBoundsDebounced({
+      viewport,
+      requestRef: viewportRequestId,
+      timerRef: viewportTimerId,
+      delayMs: MAP_VIEWPORT_DEBOUNCE_MS,
+      setStations: setMapStations
+    });
   };
+
+  useEffect(
+    () => () => cancelStationsInBoundsRequest({
+      requestRef: viewportRequestId,
+      timerRef: viewportTimerId
+    }),
+    []
+  );
 
   return (
     <Container>

@@ -15,17 +15,17 @@ export default function StationAutocomplete({
   const wrapperRef = useRef(null);
 
   const updateDropdownPosition = () => {
-    if (inputRef.current) {
-      const rect = inputRef.current.getBoundingClientRect();
-      setDropdownStyle({
-        position: 'absolute',
-        top: rect.bottom + window.scrollY + 4,
-        left: rect.left + window.scrollX,
-        width: rect.width,
-        zIndex: 9999,
-        boxSizing: 'border-box',
-      });
-    }
+    if (!inputRef.current) return; 
+    
+    const rect = inputRef.current.getBoundingClientRect();
+    setDropdownStyle({
+      position: 'absolute',
+      top: rect.bottom + window.scrollY + 4,
+      left: rect.left + window.scrollX,
+      width: rect.width,
+      zIndex: 9999,
+      boxSizing: 'border-box',
+    });
   };
 
   const openDropdown = () => {
@@ -78,13 +78,20 @@ export default function StationAutocomplete({
     inputRef.current?.blur();
   };
 
-  let dropdownContent = null;
-  if (loading) {
-    dropdownContent = <div className="autocomplete-loading-item">Поиск…</div>;
-  } else if (suggestions.length === 0 && value.trim() !== '') {
-    dropdownContent = <div className="autocomplete-empty-item">Ничего не найдено</div>;
-  } else if (suggestions.length > 0) {
-    dropdownContent = suggestions.map((station, idx) => (
+  const renderDropDown = () => {
+    if (loading) {
+      return <div className="autocomplete-loading-item">Поиск…</div>;
+    }
+
+    if (suggestions.length === 0 && value.trim() !== '') {
+      return <div className="autocomplete-empty-item">Ничего не найдено</div>;
+    }
+
+    if (suggestions.length === 0) {
+      return null;
+    }
+
+    return suggestions.map((station, idx) => (
       <button
         key={station.code || idx}
         type="button"
@@ -94,7 +101,9 @@ export default function StationAutocomplete({
         {station.displayTitle || station.title}
       </button>
     ));
-  }
+  };
+
+  const dropdownContent = renderDropDown();
 
   return (
     <div className="autocomplete" ref={wrapperRef}>

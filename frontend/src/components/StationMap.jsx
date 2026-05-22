@@ -2,8 +2,11 @@ import { CircleMarker, MapContainer, Popup, TileLayer, useMapEvents } from 'reac
 import { useEffect } from 'react';
 import 'leaflet/dist/leaflet.css';
 
-const DEFAULT_CENTER = [53.1959, 50.1008];
-const DEFAULT_ZOOM = 10;
+const DEFAULT_CENTER = [
+  Number(import.meta.env.VITE_MAP_DEFAULT_LAT),
+  Number(import.meta.env.VITE_MAP_DEFAULT_LNG)
+];
+const DEFAULT_ZOOM = Number(import.meta.env.VITE_MAP_DEFAULT_ZOOM);
 
 function ViewportEvents({ onViewportChange }) {
   const map = useMapEvents({
